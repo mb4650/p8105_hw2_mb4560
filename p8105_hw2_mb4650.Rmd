@@ -122,7 +122,7 @@ transit_df =
   )
 ```
 
-The overall NYC Transit dataset includes information on the various subway stations in NYC, such as station location, routes, entrance and exit information, presence of vending, as well as ADA compliance. In reading in this dataset, I retained specified columns, defined their column type. I, then, cleaned the column names using the janitor package and function clean_names. As another step in cleaning the data, I changed the variable entry from a character variable to a logical variable by using the function recode. The resulting data set has `r nrow(transit_df)` rows and `r ncol(transit_df)` columns. ****The data is tidy.
+The overall NYC Transit dataset includes information on the various subway stations in NYC, such as station location, routes, entrance and exit information, presence of vending, as well as ADA compliance. In reading in this dataset, I retained specified columns, defined their column type. I, then, cleaned the column names using the janitor package and function clean_names. As another step in cleaning the data, I changed the variable entry from a character variable to a logical variable by using the function recode. The resulting data set has `r nrow(transit_df)` rows and `r ncol(transit_df)` columns. The data is not tidy since route name and number are spread across multiple columns.
 
 Use data to answer the specified questions about 1) number of distinct stations, 2) number of ADA compliant stations, and 3) proportion of station entrances without vending that allow entrance.
 
@@ -150,3 +150,28 @@ vending_entry =
 1) There are `r nrow(distinct_stations)` distinct stations in this dataset.
 2) `r nrow(ada_compliant)` distinct stations are ADA compliant.
 3) The proportion of station entrances/exits without vending that allow entrance is `r vending_entry`, or `r (vending_entry)*100`%.
+
+
+Reformat the data to make route number and name distinct variables. Then create variables to be used in inline code to answer specified questions.
+
+```{r}
+transit_ref = 
+  distinct(
+    pivot_longer(
+      transit_df,
+      route1:route11,
+      names_to = "route_number",
+      names_prefix = "route",
+      values_to = "route_name"
+    ),
+  station_name, route_number, route_name, .keep_all = T) %>%
+  drop_na(route_name)
+
+transit_atrain = 
+  filter(transit_ref, route_name == "A")
+
+transit_atrain_ada =
+  filter(transit_atrain, ada == "TRUE")
+```
+
+There are `r nrow(transit_atrain)` distinct stations that serve the A train. Of the stations that serve the A train, there are `r nrow(transit_atrain_ada)` stations that are ADA compliant.
