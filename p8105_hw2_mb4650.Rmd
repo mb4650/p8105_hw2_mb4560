@@ -17,6 +17,69 @@ Read the Mr. Trashwheel dataset.
 
 ```{r}
 trashwheel_df = 
-  read_xlsx("./data/Trash-Wheel-Collection-Totals-8-6-19.xlsx")
+  read_excel(
+    "./data/Trash-Wheel-Collection-Totals-8-6-19.xlsx",
+    sheet = "Mr. Trash Wheel",
+    range = cell_cols("A:N")) %>%
+  janitor::clean_names() %>%
+  drop_na(dumpster) %>%
+  mutate(
+    sports_balls = round(sports_balls),
+    sports_balls = as.integer(sports_balls)
+  )
 ```
 
+Read and clean 2017 and 2018 precipitation data.
+
+```{r}
+precip_2018 =
+  read_excel(
+    "./data/Trash-Wheel-Collection-Totals-8-6-19.xlsx",
+    sheet = "2018 Precipitation",
+    skip = 1,
+    ) %>%
+  janitor::clean_names() %>%
+  drop_na(month) %>%
+  mutate(year = 2018) %>%
+  relocate(year)
+
+precip_2017 =
+  read_excel(
+    "./data/Trash-Wheel-Collection-Totals-8-6-19.xlsx",
+    sheet = "2017 Precipitation",
+    skip = 1,
+    ) %>%
+  janitor::clean_names() %>%
+  drop_na(month) %>%
+  mutate(year = 2017) %>%
+  relocate(year)
+```
+
+Now combine annual precipitation.
+
+```{r}
+month_df = 
+  tibble(
+    month = 1:12,
+    month_name = month.name
+  )
+
+precip_df = 
+  bind_rows(precip_2018, precip_2017) 
+
+precip_final = 
+  left_join(precip_df, month_df, by = "month")
+```
+
+
+```{r, results='hide'}
+#Calculate median sports balls for 2017 to include in inline code
+trashwheel_2017 = 
+  subset(trashwheel_df, year == 2017) 
+  
+sportsballs_2017 =
+  median(pull(trashwheel_2017, sports_balls))
+```
+
+
+This dataset includes data collected by Mr. Trash Wheel, a water-wheel trash collector, in Baltimore, Maryland. Mr. Trash Wheel collects trash that flows into the inner harbor and then stores that trash in a dumpster, which is later taken to waste-to-energy plants and incinerated to create electricity. The dataset itself includes information on the date, dumpster number, as well as the amount and type of trash. There are `r nrow(trashwheel_df)` observations in our final dataset. We also saw a median number of  `r sportsballs_2017` sports balls in a dumpster in 2017. Other sheets include information on the precipitation levels in inches by month. In the combined 2017 and 2018 precipitation dataframe, there are `r nrow(precip_final)` observations, with a total precipitation level of `r sum(pull(precip_2018, total))` inches in 2018 and `r sum(pull(precip_2017, total))` inches in 2017.
