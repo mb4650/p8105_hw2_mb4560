@@ -175,3 +175,90 @@ transit_atrain_ada =
 ```
 
 There are `r nrow(transit_atrain)` distinct stations that serve the A train. Of the stations that serve the A train, there are `r nrow(transit_atrain_ada)` stations that are ADA compliant.
+
+
+## Problem 3
+
+Read and clean pols-month dataset. Use the month_df dataframe to add month names to dataset.
+
+```{r}
+month_df = 
+  tibble(
+    month = 1:12,
+    month_name = month.name
+  )
+
+pols_mon = 
+  read_csv("./data/fivethirtyeight_datasets/pols-month.csv") %>%
+  separate(
+    col = mon, 
+    into = c("year", "month", "day"),
+    convert = TRUE) %>%
+  mutate(
+    president = if_else(prez_dem == 1, "dem", "gop")
+  ) %>%
+  select(-prez_gop, -prez_dem, -day)
+
+pols = 
+  left_join(pols_mon, month_df, by = "month") %>%
+  relocate(month_name, .after = year) %>%
+  select(-month) %>%
+  rename(month = month_name)
+```
+
+Read and clean snp dataset, and have year and month be leading columns. Use the month_df dataframe to add month names to dataset.
+
+```{r}
+snp_date = 
+  read_csv("./data/fivethirtyeight_datasets/snp.csv") %>%
+  separate(
+    col = date, 
+    into = c("month", "day", "year"),
+    convert = TRUE) %>%
+  select(-day) %>%
+  relocate(year)
+
+snp = 
+  left_join(snp_date, month_df, by = "month") %>%
+  relocate(month_name, .after = year) %>%
+  select(-month) %>%
+  rename(month = month_name)
+```
+
+
+Read and clean unemployment dataset, and use the month_df dataframe to add month names to dataset. Make sure it can be merged with previous two datasets.
+
+```{r}
+unemp = 
+  read_csv("./data/fivethirtyeight_datasets/unemployment.csv") %>%
+  janitor::clean_names() %>%
+  pivot_longer(
+    jan:dec,
+    names_to = "month",
+    values_to = "unemployment_pct"
+  ) %>%
+  mutate(
+    month = 
+      recode(
+        month, "jan" = 1, "feb" = 2, "mar" = 3, "apr" = 4, "may" = 5,"jun" = 6,
+        "jul" = 7, "aug" = 8, "sep" = 9, "oct" = 10, "nov" = 11, "dec" = 12)
+    )
+
+unemployment = 
+  left_join(unemp, month_df, by = "month") %>%
+  relocate(month_name, .after = year) %>%
+  select(-month) %>%
+  rename(month = month_name)
+```
+
+Merge together pols, snp, and employment.
+
+```{r}
+pols_snp = 
+  inner_join(pols, snp, by = c("year", "month"))
+
+pols_snp_emp = 
+  inner_join(pols_snp, unemployment, by = c("year", "month"))
+
+```
+
