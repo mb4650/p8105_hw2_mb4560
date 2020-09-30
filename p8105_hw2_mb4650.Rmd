@@ -1,0 +1,14 @@
+---
+title: "Homework 2"
+author: Maya Bunyan
+output: github_document
+---
+
+This is my solution to Homework 2! 
+
+```{r load_packages}
+library(tidyverse)
+```
+
+## Problem 1
+
