@@ -8,7 +8,15 @@ This is my solution to Homework 2!
 
 ```{r load_packages}
 library(tidyverse)
+library(readxl)
 ```
 
 ## Problem 1
+
+Read the Mr. Trashwheel dataset.
+
+```{r}
+trashwheel_df = 
+  read_xlsx("./data/Trash-Wheel-Collection-Totals-8-6-19.xlsx")
+```
 
