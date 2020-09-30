@@ -76,7 +76,7 @@ precip_final =
 ```{r, results='hide'}
 #Calculate median sports balls for 2017 to include in inline code
 trashwheel_2017 = 
-  subset(trashwheel_df, year == 2017) 
+  filter(trashwheel_df, year == 2017)
   
 sportsballs_2017 =
   median(pull(trashwheel_2017, sports_balls))
@@ -123,3 +123,30 @@ transit_df =
 ```
 
 The overall NYC Transit dataset includes information on the various subway stations in NYC, such as station location, routes, entrance and exit information, presence of vending, as well as ADA compliance. In reading in this dataset, I retained specified columns, defined their column type. I, then, cleaned the column names using the janitor package and function clean_names. As another step in cleaning the data, I changed the variable entry from a character variable to a logical variable by using the function recode. The resulting data set has `r nrow(transit_df)` rows and `r ncol(transit_df)` columns. ****The data is tidy.
+
+Use data to answer the specified questions about 1) number of distinct stations, 2) number of ADA compliant stations, and 3) proportion of station entrances without vending that allow entrance.
+
+```{r, results='hide'}
+distinct_stations = 
+  distinct(
+    transit_df, 
+    station_name, 
+    route1, route2, route3, route4, route5, route6, route7, route8, route9, route10, route11,
+    .keep_all = T
+    )
+
+ada_compliant = 
+  filter(distinct_stations, ada == "TRUE")
+
+no_vending = 
+  filter(transit_df, vending == "NO") 
+allow_entry = 
+  filter(no_vending, entry == T)
+vending_entry = 
+  nrow(allow_entry)/nrow(no_vending)
+
+```
+
+1) There are `r nrow(distinct_stations)` distinct stations in this dataset.
+2) `r nrow(ada_compliant)` distinct stations are ADA compliant.
+3) The proportion of station entrances/exits without vending that allow entrance is `r vending_entry`, or `r (vending_entry)*100`%.
